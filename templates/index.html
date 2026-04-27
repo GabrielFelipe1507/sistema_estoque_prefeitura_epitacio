@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Estoque Prefeitura</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <button id="toggle-btn"><i class="fas fa-bars"></i></button>
+        <div class="sidebar-header"><h3>Almoxarifado</h3></div>
+        
+        <div class="search-sidebar" style="padding: 10px 20px;">
+            <div style="position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 10px; top: 10px; color: #6c757d; font-size: 12px;"></i>
+                <input type="text" id="catSearch" placeholder="Buscar categoria..." 
+                       style="width: 100%; padding: 8px 8px 8px 30px; font-size: 12px; background: #343a40; color: white; border: none; border-radius: 4px;">
+            </div>
+        </div>
+
+        <div class="sidebar-menu" id="categoryMenu">
+            {% for cat in categorias %}
+            <div class="menu-row">
+                <a href="/?cat={{ cat.nome }}" class="menu-item {{ 'active' if cat_ativa == cat.nome else '' }}">
+                    <i class="fas fa-box"></i>
+                    <span class="menu-text">{{ cat.nome }}</span>
+                </a>
+                <a href="/delete_category/{{ cat.nome }}" class="delete-cat" onclick="return confirm('Excluir categoria?')"><i class="fas fa-times"></i></a>
+            </div>
+            {% endfor %}
+
+            <div class="extra-form" style="padding: 20px;">
+                <small style="color: #6c757d; display: block; margin: 10px 0 5px 0;">GERENCIAR CATEGORIAS</small>
+                <form action="/add_category" method="POST">
+                    <input type="text" name="nova_categoria" placeholder="+ Categoria" style="width: 100%; font-size: 12px; margin-bottom: 10px;">
+                </form>
+
+                <small style="color: #6c757d; display: block; margin: 10px 0 5px 0;">GERENCIAR CORES</small>
+                <div class="color-manager">
+                    {% for cor in cores %}
+                    <div class="color-tag"><span>{{ cor.nome }}</span><a href="/delete_color/{{ cor.id }}" class="del-color" onclick="return confirm('Excluir cor?')">×</a></div>
+                    {% endfor %}
+                </div>
+                <form action="/add_color" method="POST" style="margin-top: 10px;">
+                    <input type="text" name="nova_cor" placeholder="+ Cor" style="width: 100%; font-size: 11px; background: #343a40; color: white; border: none;">
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}{% for m in messages %}<div class="alert">{{ m }}</div>{% endfor %}{% endif %}
+        {% endwith %}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Gerenciar: {{ cat_ativa }}</h1>
+            
+            <form action="/" method="GET" style="display: flex; gap: 10px;">
+                <input type="hidden" name="cat" value="{{ cat_ativa }}">
+                <div style="position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 10px; top: 12px; color: #6c757d;"></i>
+                    <input type="text" name="search" placeholder="Pesquisar itens..." value="{{ search }}" 
+                           style="padding-left: 30px; width: 250px;">
+                </div>
+                <select name="sort" onchange="this.form.submit()" style="width: auto; cursor: pointer;">
+                    <option value="asc" {{ 'selected' if sort == 'asc' }}>A-Z</option>
+                    <option value="desc" {{ 'selected' if sort == 'desc' }}>Z-A</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Novo Cadastro em {{ cat_ativa }}</h3>
+            <form action="/add" method="POST" class="form-grid">
+                <input type="hidden" name="categoria" value="{{ cat_ativa }}">
+                {% if cat_ativa in ["Tubinhos de Tinta", "Cartuchos"] %}
+                    <input type="text" name="descricao" placeholder="Escolha a Cor" list="lista-cores" required>
+                    <datalist id="lista-cores">{% for cor in cores %}<option value="{{ cor.nome }}">{% endfor %}</datalist>
+                {% else %}
+                    <input type="text" name="descricao" placeholder="Modelo / Descrição" required>
+                {% endif %}
+                <input type="text" name="patrimonio" placeholder="Patrimônio (Opcional)">
+                <input type="number" name="quantidade" placeholder="Quantidade" min="0" required>
+                <input type="text" name="marca" placeholder="Marca (Opcional)">
+                <button type="submit" class="btn btn-success">Cadastrar</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descrição / Modelo</th>
+                        <th>Patrimônio</th>
+                        <th>Quantidade</th>
+                        <th>Marca</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td><strong>{{ item.descricao }}</strong></td>
+                        <td>{{ item.patrimonio or '---' }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>{{ item.marca or '---' }}</td>
+                        <td>
+                            <a href="{{ url_for('editar', id=item.id) }}" style="color: #ffc107; text-decoration: none; font-size: 13px;">Alterar</a>
+                            <a href="/delete/{{ item.id }}" style="color: #dc3545; text-decoration: none; font-size: 13px; margin-left: 15px;" onclick="return confirm('Excluir?')">Excluir</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // Lógica do menu retrátil
+        const btn = document.getElementById('toggle-btn');
+        const sidebar = document.getElementById('sidebar');
+        btn.onclick = () => sidebar.classList.toggle('collapsed');
+
+        // Lógica de busca rápida nas categorias (Sidebar)
+        document.getElementById('catSearch').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let items = document.querySelectorAll('#categoryMenu .menu-row');
+            items.forEach(item => {
+                let text = item.textContent.toLowerCase();
+                item.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
