@@ -6,10 +6,12 @@ app.secret_key = "estoque_epitacio_2026"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///estoque_prefeitura_epitacio.db'
 db = SQLAlchemy(app)
 
+# Modelos
 class Categoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(50), unique=True, nullable=False)
 
+# Mantenha o modelo Item com as novas colunas como fizemos antes:
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     categoria_nome = db.Column(db.String(50))
@@ -18,6 +20,9 @@ class Item(db.Model):
     quantidade = db.Column(db.Integer, default=0)
     marca = db.Column(db.String(50), nullable=True)
     status = db.Column(db.String(30), default='Indefinido')
+    baixa = db.Column(db.String(20), default='Indefinido')
+    descarte = db.Column(db.String(20), default='Indefinido')
+    descricao_baixa = db.Column(db.String(200), nullable=True)
 
 class Cor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,7 +31,6 @@ class Cor(db.Model):
 with app.app_context():
     db.create_all()
     if not Categoria.query.first():
-        # NOME ATUALIZADO AQUI
         lista = ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner", "Monitores", "CPU's", "Teclados", "Mouses", "Nobrakes", "Estabilizadores", "Notebooks", "Fontes", "Caixinhas de Som", "Coolers", "Baterias de Carro"]
         for c in lista: db.session.add(Categoria(nome=c))
         db.session.commit()
@@ -50,6 +54,46 @@ def index():
     itens = query.all()
     cores = Cor.query.all()
     return render_template('index.html', itens=itens, cores=cores, categorias=categorias, cat_ativa=cat_selecionada, search=search_query, sort=sort_order)
+
+@app.route('/add', methods=['POST'])
+def add():
+    cat = request.form.get('categoria')
+    novo = Item(
+        categoria_nome=cat, 
+        descricao=request.form.get('descricao'), 
+        patrimonio=request.form.get('patrimonio'),
+        quantidade=int(request.form.get('quantidade', 0)), 
+        marca=request.form.get('marca'), 
+        status=request.form.get('status', 'Indefinido'),
+        baixa=request.form.get('baixa', 'Indefinido'),
+        descarte=request.form.get('descarte', 'Indefinido'),
+        descricao_baixa=request.form.get('descricao_baixa')
+    )
+    db.session.add(novo); db.session.commit()
+    return redirect(url_for('index', cat=cat))
+
+@app.route('/editar/<int:id>', methods=['GET', 'POST'])
+def editar(id):
+    item = Item.query.get_or_404(id)
+    if request.method == 'POST':
+        item.descricao = request.form.get('descricao')
+        item.patrimonio = request.form.get('patrimonio')
+        item.quantidade = int(request.form.get('quantidade', 0))
+        item.marca = request.form.get('marca')
+        item.status = request.form.get('status', 'Indefinido')
+        item.baixa = request.form.get('baixa', 'Indefinido')
+        item.descarte = request.form.get('descarte', 'Indefinido')
+        item.descricao_baixa = request.form.get('descricao_baixa')
+        db.session.commit()
+        return redirect(url_for('index', cat=item.categoria_nome))
+    return render_template('editar.html', item=item)
+
+# Outras rotas (delete, add_color, etc) permanecem iguais...
+@app.route('/delete/<int:id>')
+def delete(id):
+    item = Item.query.get(id); cat = item.categoria_nome
+    db.session.delete(item); db.session.commit()
+    return redirect(url_for('index', cat=cat))
 
 @app.route('/add_category', methods=['POST'])
 def add_category():
@@ -80,30 +124,6 @@ def delete_color(id):
     cor = Cor.query.get(id)
     if cor: db.session.delete(cor); db.session.commit()
     return redirect(url_for('index'))
-
-@app.route('/add', methods=['POST'])
-def add():
-    cat = request.form.get('categoria')
-    novo = Item(categoria_nome=cat, descricao=request.form.get('descricao'), patrimonio=request.form.get('patrimonio'),
-                quantidade=int(request.form.get('quantidade', 0)), marca=request.form.get('marca'), status=request.form.get('status', 'Indefinido'))
-    db.session.add(novo); db.session.commit()
-    return redirect(url_for('index', cat=cat))
-
-@app.route('/editar/<int:id>', methods=['GET', 'POST'])
-def editar(id):
-    item = Item.query.get_or_404(id)
-    if request.method == 'POST':
-        item.descricao = request.form.get('descricao'); item.patrimonio = request.form.get('patrimonio')
-        item.quantidade = int(request.form.get('quantidade', 0)); item.marca = request.form.get('marca')
-        item.status = request.form.get('status', 'Indefinido'); db.session.commit()
-        return redirect(url_for('index', cat=item.categoria_nome))
-    return render_template('editar.html', item=item)
-
-@app.route('/delete/<int:id>')
-def delete(id):
-    item = Item.query.get(id); cat = item.categoria_nome
-    db.session.delete(item); db.session.commit()
-    return redirect(url_for('index', cat=cat))
 
 if __name__ == '__main__':
     app.run(debug=True)

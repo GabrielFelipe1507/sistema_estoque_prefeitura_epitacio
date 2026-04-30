@@ -7,16 +7,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+
     <nav class="sidebar" id="sidebar">
         <button id="toggle-btn"><i class="fas fa-bars"></i></button>
         <div class="sidebar-header"><h3>Almoxarifado</h3></div>
-        <div class="search-sidebar" style="padding: 10px 20px;">
-            <div style="position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 10px; top: 10px; color: #6c757d; font-size: 12px;"></i>
-                <input type="text" id="catSearch" placeholder="Buscar categoria..." 
-                       style="width: 100%; padding: 8px 8px 8px 30px; font-size: 12px; background: #343a40; color: white; border: none; border-radius: 4px;">
+        
+        <div class="search-sidebar">
+            <div class="input-group">
+                <i class="fas fa-search"></i>
+                <input type="text" id="catSearch" placeholder="Buscar categoria...">
             </div>
         </div>
+
         <div class="sidebar-menu" id="categoryMenu">
             {% for cat in categorias %}
             <div class="menu-row">
@@ -24,35 +26,50 @@
                     <i class="fas fa-box"></i>
                     <span class="menu-text">{{ cat.nome }}</span>
                 </a>
-                <a href="/delete_category/{{ cat.nome }}" class="delete-cat" onclick="return confirm('Excluir?')"><i class="fas fa-times"></i></a>
+                <a href="/delete_category/{{ cat.nome }}" class="delete-cat" onclick="return confirm('Excluir categoria?')"><i class="fas fa-times"></i></a>
             </div>
             {% endfor %}
+
             <div class="extra-form" style="padding: 20px;">
-                <form action="/add_category" method="POST"><input type="text" name="nova_categoria" placeholder="+ Categoria" style="width: 100%; font-size: 12px;"></form>
-                <div class="color-manager" style="margin-top: 15px;">
-                    {% for cor in cores %}<div class="color-tag"><span>{{ cor.nome }}</span><a href="/delete_color/{{ cor.id }}" class="del-color">×</a></div>{% endfor %}
+                <small style="color: #6c757d; display: block; margin: 10px 0 5px 0;">CATEGORIAS</small>
+                <form action="/add_category" method="POST">
+                    <input type="text" name="nova_categoria" placeholder="+ Nova" style="width: 100%; font-size: 12px;">
+                </form>
+
+                <small style="color: #6c757d; display: block; margin: 10px 0 5px 0;">CORES</small>
+                <div class="color-manager">
+                    {% for cor in cores %}
+                    <div class="color-tag"><span>{{ cor.nome }}</span><a href="/delete_color/{{ cor.id }}" class="del-color">×</a></div>
+                    {% endfor %}
                 </div>
-                <form action="/add_color" method="POST"><input type="text" name="nova_cor" placeholder="+ Cor" style="width: 100%; font-size: 11px; background: #343a40; color: white; border: none;"></form>
+                <form action="/add_color" method="POST">
+                    <input type="text" name="nova_cor" placeholder="+ Cor" style="width: 100%; font-size: 11px;">
+                </form>
             </div>
         </div>
     </nav>
 
     <main class="main-content">
-        {% with messages = get_flashed_messages() %}{% if messages %}{% for m in messages %}<div class="alert">{{ m }}</div>{% endfor %}{% endif %}{% endwith %}
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}{% for m in messages %}<div class="alert">{{ m }}</div>{% endfor %}{% endif %}
+        {% endwith %}
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1>Gerenciar: {{ cat_ativa }}</h1>
+            <h1>{{ cat_ativa }}</h1>
             <form action="/" method="GET" style="display: flex; gap: 10px;">
                 <input type="hidden" name="cat" value="{{ cat_ativa }}">
                 <div style="position: relative;">
                     <i class="fas fa-search" style="position: absolute; left: 10px; top: 12px; color: #6c757d;"></i>
-                    <input type="text" name="search" placeholder="Pesquisar..." value="{{ search }}" style="padding-left: 30px; width: 250px;">
+                    <input type="text" name="search" placeholder="Pesquisar..." value="{{ search }}" style="padding-left: 30px;">
                 </div>
-                <select name="sort" onchange="this.form.submit()"><option value="asc" {{ 'selected' if sort == 'asc' }}>A-Z</option><option value="desc" {{ 'selected' if sort == 'desc' }}>Z-A</option></select>
+                <select name="sort" onchange="this.form.submit()">
+                    <option value="asc" {{ 'selected' if sort == 'asc' }}>A-Z</option>
+                    <option value="desc" {{ 'selected' if sort == 'desc' }}>Z-A</option>
+                </select>
             </form>
         </div>
 
         <div class="card">
-            <h3>Novo Cadastro em {{ cat_ativa }}</h3>
             <form action="/add" method="POST" class="form-grid">
                 <input type="hidden" name="categoria" value="{{ cat_ativa }}">
                 
@@ -64,36 +81,47 @@
                 {% endif %}
 
                 {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}
-                    <input type="text" name="patrimonio" placeholder="Patrimônio (Opcional)">
+                    <input type="text" name="patrimonio" placeholder="Patrimônio">
                 {% endif %}
 
-                <input type="number" name="quantidade" placeholder="Quantidade" min="0" required>
-                <input type="text" name="marca" placeholder="Marca (Opcional)">
+                <input type="number" name="quantidade" placeholder="Qtd" min="0" required>
+                <input type="text" name="marca" placeholder="Marca">
 
                 {% if cat_ativa != "Cartuchos" %}
                     <select name="status">
-                        {% if cat_ativa == "Tubinhos de Tinta/ Refil" %}
-                            <option value="Cheio">Cheio</option><option value="Vazio">Vazio</option>
-                        {% elif cat_ativa == "Toner" %}
-                            <option value="Indefinido">Indefinido (Checagem)</option><option value="Cheio">Cheio</option><option value="Vazio">Vazio</option>
+                        {% if cat_ativa in ["Tubinhos de Tinta/ Refil", "Toner"] %}
+                            <option value="Indefinido">Indefinido</option><option value="Cheio">Cheio</option><option value="Vazio">Vazio</option>
                         {% else %}
                             <option value="Indefinido">Indefinido</option><option value="Funcionando">Funcionando</option><option value="Não Funcionando">Não Funcionando</option>
                         {% endif %}
                     </select>
                 {% endif %}
-                <button type="submit" class="btn btn-success">Cadastrar</button>
+
+                {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}
+                    <select name="baixa"><option value="Indefinido">Baixa?</option><option value="Sim">Sim</option><option value="Não">Não</option></select>
+                    <select name="descarte"><option value="Indefinido">Descarte?</option><option value="Sim">Sim</option><option value="Não">Não</option></select>
+                    <input type="text" name="descricao_baixa" placeholder="Destino">
+                {% endif %}
+
+                <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Adicionar ao Estoque</button>
             </form>
         </div>
 
-        <div class="card">
-            <table>
+        <div class="card table-container">
+            <table id="inventoryTable">
                 <thead>
                     <tr>
-                        <th>Descrição / Modelo</th>
-                        {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}<th>Patrimônio</th>{% endif %}
-                        <th>Quantidade</th><th>Marca</th>
-                        {% if cat_ativa != "Cartuchos" %}<th>Status</th>{% endif %}
-                        <th>Ações</th>
+                        <th style="width: 250px;">Descrição <div class="resizer"></div></th>
+                        {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}<th style="width: 120px;">Patrimônio <div class="resizer"></div></th>{% endif %}
+                        <th style="width: 70px;">Qtd <div class="resizer"></div></th>
+                        <th style="width: 100px;">Marca <div class="resizer"></div></th>
+                        {% if cat_ativa != "Cartuchos" %}<th style="width: 120px;">Status <div class="resizer"></div></th>{% endif %}
+                        {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}
+                            <th style="width: 80px;">Baixa <div class="resizer"></div></th>
+                            <th style="width: 80px;">Descarte <div class="resizer"></div></th>
+                            <th style="width: 150px;">Destino <div class="resizer"></div></th>
+                        {% endif %}
+                        <th style="width: 220px;">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,11 +129,19 @@
                     <tr>
                         <td><strong>{{ item.descricao }}</strong></td>
                         {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}<td>{{ item.patrimonio or '---' }}</td>{% endif %}
-                        <td>{{ item.quantidade }}</td><td>{{ item.marca or '---' }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>{{ item.marca or '---' }}</td>
                         {% if cat_ativa != "Cartuchos" %}<td>{{ item.status }}</td>{% endif %}
-                        <td>
-                            <a href="{{ url_for('editar', id=item.id) }}" style="color: #ffc107; text-decoration: none;">Alterar</a>
-                            <a href="/delete/{{ item.id }}" style="color: #dc3545; text-decoration: none; margin-left: 15px;" onclick="return confirm('Excluir?')">Excluir</a>
+                        {% if cat_ativa not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}
+                            <td>{{ item.baixa }}</td><td>{{ item.descarte }}</td><td>{{ item.descricao_baixa or '---' }}</td>
+                        {% endif %}
+                        <td style="white-space: nowrap;">
+                            <a href="{{ url_for('editar', id=item.id) }}" class="btn-action btn-edit">
+                                <i class="fas fa-edit"></i> Alterar
+                            </a>
+                            <a href="/delete/{{ item.id }}" class="btn-action btn-delete" onclick="return confirm('Tem certeza que deseja excluir?')">
+                                <i class="fas fa-trash"></i> Excluir
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -113,17 +149,45 @@
             </table>
         </div>
     </main>
+
     <script>
-        const btn = document.getElementById('toggle-btn');
         const sidebar = document.getElementById('sidebar');
-        btn.onclick = () => sidebar.classList.toggle('collapsed');
-        document.getElementById('catSearch').addEventListener('keyup', function() {
+        document.getElementById('toggle-btn').onclick = () => sidebar.classList.toggle('collapsed');
+
+        document.getElementById('catSearch').onkeyup = function() {
             let filter = this.value.toLowerCase();
-            let items = document.querySelectorAll('#categoryMenu .menu-row');
-            items.forEach(item => {
-                let text = item.textContent.toLowerCase();
-                item.style.display = text.includes(filter) ? '' : 'none';
+            document.querySelectorAll('#categoryMenu .menu-row').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
             });
+        };
+
+        const table = document.getElementById('inventoryTable');
+        const headers = table.querySelectorAll('th');
+
+        headers.forEach(th => {
+            const resizer = th.querySelector('.resizer');
+            if (!resizer) return;
+
+            let startX, startWidth;
+
+            resizer.addEventListener('mousedown', (e) => {
+                startX = e.pageX;
+                startWidth = th.offsetWidth;
+                resizer.classList.add('resizing');
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                const width = startWidth + (e.pageX - startX);
+                th.style.width = `${width}px`;
+            }
+
+            function onMouseUp() {
+                resizer.classList.remove('resizing');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
         });
     </script>
 </body>
