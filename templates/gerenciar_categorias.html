@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Categorias | Almoxarifado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Layout Principal */
+        .admin-container { 
+            max-width: 1200px; 
+            margin: 30px auto; 
+            display: grid; 
+            grid-template-columns: 450px 1fr; 
+            gap: 25px; 
+            height: calc(100vh - 60px); 
+        }
+
+        .card-admin { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+
+        /* Estilização da Lista com Scroll */
+        .lista-wrapper { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            margin-top: 15px; 
+            padding-right: 10px; 
+        }
+
+        /* Scrollbar customizada para combinar com o sistema */
+        .lista-wrapper::-webkit-scrollbar { width: 8px; }
+        .lista-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .lista-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        .lista-wrapper::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+        /* Elementos do Formulário */
+        .campo-row { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 12px; 
+            align-items: center; 
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .lista-cat { list-style: none; padding: 0; }
+        .lista-cat li { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 15px; 
+            border-bottom: 1px solid #f0f0f0; 
+            transition: background 0.2s;
+        }
+        .lista-cat li:hover { background-color: #fafafa; }
+
+        .btn-remover { 
+            background: #ff4d4d; 
+            color: white; 
+            border: none; 
+            padding: 10px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .btn-remover:hover { background: #cc0000; }
+
+        .cat-info-text { flex: 1; margin-right: 15px; }
+        .cat-actions { display: flex; gap: 8px; }
+
+        label { font-weight: 600; color: #444; margin-bottom: 8px; display: block; }
+        
+        .header-admin { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body style="display: block; background-color: #f0f2f5; overflow: hidden;">
+
+    <div class="admin-container">
+        <!-- LADO ESQUERDO: CONFIGURAÇÃO -->
+        <div class="card-admin">
+            <div class="header-admin">
+                <h2 id="form-titulo">✨ Nova Categoria</h2>
+            </div>
+
+            <form action="/salvar_categoria" method="POST" id="formCategoria">
+                <input type="hidden" name="cat_id" id="cat_id">
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="cat_nome">Nome da Categoria:</label>
+                    <input type="text" name="nome" id="cat_nome" placeholder="Ex: Equipamentos Médicos" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+
+                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <label style="margin: 0;">Colunas Adicionais:</label>
+                    <button type="button" class="btn-action" style="background: #28a745; color: white;" onclick="adicionarCampo()">
+                        <i class="fas fa-plus"></i> Novo Campo
+                    </button>
+                </div>
+
+                <div id="container-campos" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Campos dinâmicos entram aqui -->
+                </div>
+
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <button type="submit" class="btn-success" style="width: 100%; padding: 15px; font-size: 16px;">
+                        <i class="fas fa-check-circle"></i> Salvar Configuração
+                    </button>
+                    <button type="button" onclick="resetForm()" style="width: 100%; margin-top: 10px; background: #e9ecef; border: none; padding: 10px; border-radius: 6px; cursor: pointer; color: #555;">
+                        <i class="fas fa-eraser"></i> Limpar / Cancelar
+                    </button>
+                    <a href="/" style="display: block; text-align: center; margin-top: 15px; color: #007bff; text-decoration: none; font-weight: 500;">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Painel Principal
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- LADO DIREITO: LISTAGEM COM SCROLL -->
+        <div class="card-admin">
+            <div class="header-admin">
+                <h2>Categorias no Sistema</h2>
+            </div>
+            
+            <div class="lista-wrapper">
+                <ul class="lista-cat">
+                    {% for cat in categorias %}
+                    <li>
+                        <div class="cat-info-text">
+                            <strong style="font-size: 16px; color: #212529;">{{ cat.nome }}</strong><br>
+                            <small style="color: #6c757d;">Colunas extras: {{ cat.colunas if cat.colunas else 'Nenhuma' }}</small>
+                        </div>
+                        <div class="cat-actions">
+                            <button onclick="editarCat('{{ cat.id }}', '{{ cat.nome }}', '{{ cat.colunas }}')" class="btn-action btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <a href="/excluir_categoria/{{ cat.id }}" class="btn-action btn-delete" onclick="return confirm('Isso excluirá a categoria permanentemente. Continuar?')">
+                                <i class="fas fa-trash"></i> Excluir
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container-campos');
+        const form = document.getElementById('formCategoria');
+
+        function adicionarCampo(valor = '') {
+            const div = document.createElement('div');
+            div.className = 'campo-row';
+            div.innerHTML = `
+                <input type="text" name="coluna[]" value="${valor}" placeholder="Nome da coluna" required style="flex:1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                <button type="button" class="btn-remover" onclick="this.parentElement.remove()" title="Remover campo">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function editarCat(id, nome, colunas) {
+            document.getElementById('form-titulo').innerText = "✏️ Editando Categoria";
+            document.getElementById('cat_id').value = id;
+            document.getElementById('cat_nome').value = nome;
+            container.innerHTML = '';
+            
+            if (colunas && colunas.trim() !== '') {
+                colunas.split(',').forEach(c => adicionarCampo(c.trim()));
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('form-titulo').innerText = "✨ Nova Categoria";
+            document.getElementById('cat_id').value = '';
+            document.getElementById('cat_nome').value = '';
+            container.innerHTML = '';
+        }
+
+        // --- VALIDAÇÃO DE COLUNAS REPETIDAS ---
+        form.addEventListener('submit', function(e) {
+            const inputs = document.querySelectorAll('input[name="coluna[]"]');
+            const nomes = [];
+            
+            for (let input of inputs) {
+                let nomeLimpo = input.value.trim().toLowerCase();
+                if (nomes.includes(nomeLimpo)) {
+                    e.preventDefault(); // Trava o envio
+                    alert('Erro: Você não pode cadastrar duas colunas com o mesmo nome: "' + input.value + '"');
+                    input.style.borderColor = "red";
+                    input.focus();
+                    return;
+                }
+                nomes.push(nomeLimpo);
+            }
+        });
+    </script>
+</body>
+</html>

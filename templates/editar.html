@@ -18,69 +18,35 @@
         <h2>✏️ Editar: {{ item.categoria_nome }}</h2>
         
         <form method="POST">
+            <!-- Campos Fixos -->
             <div class="form-group">
                 <label>Descrição / Cor:</label>
-                <input type="text" name="descricao" value="{{ item.descricao }}" required>
+                <input type="text" name="descricao" value="{{ item.descricao }}" required style="width: 100%; padding: 8px;">
             </div>
-
-            {% if item.categoria_nome not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}
-            <div class="form-group">
-                <label>Nº Patrimônio:</label>
-                <input type="text" name="patrimonio" value="{{ item.patrimonio or '' }}">
-            </div>
-            {% endif %}
 
             <div class="form-group">
                 <label>Quantidade em Estoque:</label>
-                <input type="number" name="quantidade" value="{{ item.quantidade }}" min="0" required>
+                <input type="number" name="quantidade" value="{{ item.quantidade }}" min="0" required style="width: 100%; padding: 8px;">
             </div>
 
             <div class="form-group">
                 <label>Marca:</label>
-                <input type="text" name="marca" value="{{ item.marca or '' }}">
+                <input type="text" name="marca" value="{{ item.marca or '' }}" style="width: 100%; padding: 8px;">
             </div>
 
-            {% if item.categoria_nome != "Cartuchos" %}
-            <div class="form-group">
-                <label>Status:</label>
-                <select name="status">
-                    {% if item.categoria_nome == "Tubinhos de Tinta/ Refil" %}
-                        <option value="Cheio" {{ 'selected' if item.status == 'Cheio' }}>Cheio</option><option value="Vazio" {{ 'selected' if item.status == 'Vazio' }}>Vazio</option>
-                    {% elif item.categoria_nome == "Toner" %}
-                        <option value="Indefinido" {{ 'selected' if item.status == 'Indefinido' }}>Indefinido</option><option value="Cheio" {{ 'selected' if item.status == 'Cheio' }}>Cheio</option><option value="Vazio" {{ 'selected' if item.status == 'Vazio' }}>Vazio</option>
-                    {% else %}
-                        <option value="Indefinido" {{ 'selected' if item.status == 'Indefinido' }}>Indefinido</option><option value="Funcionando" {{ 'selected' if item.status == 'Funcionando' }}>Funcionando</option><option value="Não Funcionando" {{ 'selected' if item.status == 'Não Funcionando' }}>Não Funcionando</option>
-                    {% endif %}
-                </select>
-            </div>
-            {% endif %}
-
-            {% if item.categoria_nome not in ["Tubinhos de Tinta/ Refil", "Cartuchos", "Toner"] %}
-            <div class="form-group">
-                <label>Baixa:</label>
-                <select name="baixa">
-                    <option value="Indefinido" {{ 'selected' if item.baixa == 'Indefinido' }}>Indefinido</option>
-                    <option value="Sim" {{ 'selected' if item.baixa == 'Sim' }}>Sim</option>
-                    <option value="Não" {{ 'selected' if item.baixa == 'Não' }}>Não</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Descarte:</label>
-                <select name="descarte">
-                    <option value="Indefinido" {{ 'selected' if item.descarte == 'Indefinido' }}>Indefinido</option>
-                    <option value="Sim" {{ 'selected' if item.descarte == 'Sim' }}>Sim</option>
-                    <option value="Não" {{ 'selected' if item.descarte == 'Não' }}>Não</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Destino / Descrição da Baixa:</label>
-                <input type="text" name="descricao_baixa" value="{{ item.descricao_baixa or '' }}">
-            </div>
-            {% endif %}
+            <!-- Campos Dinâmicos (Gerados a partir das colunas da categoria) -->
+            {% for col in lista_colunas %}
+                {% if col %}
+                <div class="form-group">
+                    <label>{{ col }}:</label>
+                    <input type="text" name="dyn_{{ col }}" value="{{ item.dicionario.get(col, '') }}" style="width: 100%; padding: 8px;">
+                </div>
+                {% endif %}
+            {% endfor %}
 
             <div class="btn-group">
-                <button type="submit" class="btn btn-success" style="width: 100%;">Salvar Alterações</button>
-                <a href="{{ url_for('index', cat=item.categoria_nome) }}" style="text-decoration: none; color: #666; padding: 10px;">Cancelar</a>
+                <button type="submit" class="btn btn-success" style="flex: 1; padding: 10px; border-radius: 4px; border: none; background: #28a745; color: white; cursor: pointer;">Salvar Alterações</button>
+                <a href="{{ url_for('index', cat=item.categoria_nome) }}" style="text-decoration: none; color: #444; padding: 10px; background: #e9ecef; border-radius: 4px; text-align: center;">Cancelar</a>
             </div>
         </form>
     </div>
