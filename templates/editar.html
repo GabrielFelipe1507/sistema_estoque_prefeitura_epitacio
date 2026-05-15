@@ -1,32 +1,61 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <title>Editar Material</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .edit-container { max-width: 500px; margin: 50px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        .edit-container h2 { margin-bottom: 20px; color: #212529; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .edit-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-container h2 {
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
+
 <body style="display: block; background-color: #f4f6f9;">
 
     <div class="edit-container">
         <h2>✏️ Editar: {{ item.categoria_nome }}</h2>
-        
+
         <form method="POST">
             <!-- Campos Fixos -->
             <div class="form-group">
                 <label>Descrição / Cor:</label>
-                <input type="text" name="descricao" value="{{ item.descricao }}" required style="width: 100%; padding: 8px;">
+                <input type="text" name="descricao" value="{{ item.descricao }}" required
+                    style="width: 100%; padding: 8px;">
             </div>
 
             <div class="form-group">
                 <label>Quantidade em Estoque:</label>
-                <input type="number" name="quantidade" value="{{ item.quantidade }}" min="0" required style="width: 100%; padding: 8px;">
+                <input type="number" name="quantidade" value="{{ item.quantidade }}" min="0" required
+                    style="width: 100%; padding: 8px;">
             </div>
 
             <div class="form-group">
@@ -36,20 +65,22 @@
 
             <!-- Campos Dinâmicos (Gerados a partir das colunas da categoria) -->
             {% for col in lista_colunas %}
-                {% if col %}
-                <div class="form-group">
-                    <label>{{ col }}:</label>
-                    <input type="text" name="dyn_{{ col }}" value="{{ item.dicionario.get(col, '') }}" style="width: 100%; padding: 8px;">
-                </div>
-                {% endif %}
+            <div class="form-group">
+                <label>{{ col }}:</label>
+                <input type="text" name="dyn_{{ col }}" value="{{ item.dicionario.get(col, '') }}" required>
+            </div>
             {% endfor %}
 
             <div class="btn-group">
-                <button type="submit" class="btn btn-success" style="flex: 1; padding: 10px; border-radius: 4px; border: none; background: #28a745; color: white; cursor: pointer;">Salvar Alterações</button>
-                <a href="{{ url_for('index', cat=item.categoria_nome) }}" style="text-decoration: none; color: #444; padding: 10px; background: #e9ecef; border-radius: 4px; text-align: center;">Cancelar</a>
+                <button type="submit" class="btn btn-success"
+                    style="flex: 1; padding: 10px; border-radius: 4px; border: none; background: #28a745; color: white; cursor: pointer;">Salvar
+                    Alterações</button>
+                <a href="{{ url_for('index', cat=item.categoria_nome) }}"
+                    style="text-decoration: none; color: #444; padding: 10px; background: #e9ecef; border-radius: 4px; text-align: center;">Cancelar</a>
             </div>
         </form>
     </div>
 
 </body>
+
 </html>

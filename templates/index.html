@@ -25,6 +25,7 @@
 
         <!-- Dentro do seu index.html, na navegação lateral (nav id="sidebar") -->
         <div class="sidebar-menu" id="categoryMenu">
+            <div class="sidebar-header" style="font-size: 12px; padding: 10px;">CATEGORIAS</div>
             {% for cat in categorias %}
             <div class="menu-row">
                 <a href="/?cat={{ cat.nome }}" class="menu-item {{ 'active' if cat_ativa == cat.nome else '' }}">
@@ -52,6 +53,30 @@
                     <input type="text" name="nova_cor" placeholder="+ Cor" style="width: 100%; font-size: 11px;">
                 </form>
             </div>
+            <div class="sidebar-menu">
+                <a href="/" class="menu-item {% if request.path == '/' %}active{% endif %}">
+                    <i class="fas fa-boxes"></i>
+                    <span class="menu-text">Estoque</span>
+                </a>
+
+                <a href="/gerenciar_usuarios"
+                    class="menu-item {% if request.path == '/gerenciar_usuarios' %}active{% endif %}">
+                    <i class="fas fa-users-cog"></i>
+                    <span class="menu-text">Gerenciar Usuários</span>
+                </a>
+
+                <hr style="border: 0; border-top: 1px solid #343a40; margin: 10px 0;">
+
+                {% for cat in categorias %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="menu-item logout-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="menu-text">Sair</span>
+            </a>
         </div>
     </nav>
 
@@ -83,14 +108,14 @@
                 {% if cat_ativa in ["Cartuchos", "Toner", "Tubinhos de Tinta/ Refil"] %}
                 <input type="text" name="descricao" placeholder="Modelo / Descrição / Cor" list="lista-cores" required>
                 <datalist id="lista-cores">{% for cor in cores %}<option value="{{ cor.nome }}">{% endfor %}</datalist>
-                <input type="number" name="quantidade" placeholder="Qtd" min="0" required>
+                <input type="number" name="quantidade" placeholder="Qtd" min="0" max="999999" required>
                 <input type="text" name="marca" placeholder="Marca (Opcional)">
                 {% endif %}
 
                 <!-- CAMPOS DINÂMICOS: Aparecem para todas as categorias conforme você cadastrou -->
                 {% for col in lista_colunas %}
                 {% if col %}
-                <input type="text" name="dyn_{{ col }}" placeholder="{{ col }}">
+                <input type="text" name="dyn_{{ col }}" placeholder="{{ col }} *" required>
                 {% endif %}
                 {% endfor %}
 

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar Senha</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { background-color: #f4f6f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .btn-send { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="text-align: center;">Recuperar Senha</h2>
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Digite seu e-mail cadastrado para receber uma nova senha temporária.</p>
+        <form method="POST">
+            <input type="email" name="email" class="form-control" placeholder="Seu e-mail" required>
+            <button type="submit" class="btn-send">ENVIAR NOVA SENHA</button>
+        </form>
+        <div style="text-align: center; margin-top: 15px;">
+            <a href="/login" style="color: #007bff; text-decoration: none; font-size: 14px;">Voltar ao Login</a>
+        </div>
+    </div>
+</body>
+</html>
